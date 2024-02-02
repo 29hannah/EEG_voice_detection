@@ -1,4 +1,3 @@
-
 # Correlates of voice detection in EEG 
 * Analysis 
 	* EEG: ERP analysis of the collected EEG data using MNE python
