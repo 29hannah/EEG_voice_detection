@@ -1,13 +1,11 @@
-
+"""Fitting psychometric function for behavioral data
+"""
 import slab
 import pathlib
 from os.path import join
 import os
 import pandas as pd
-import statistics
 import pythonpsignifitmaster.psignifit as ps
-
-#TODO unit for response time?
 
 def abs_file_paths(directory):
     for dirpath, _, filenames in os.walk(directory):
@@ -19,12 +17,10 @@ def abs_file_paths(directory):
 data_dir = "/Users/hannahsmacbook/PycharmProjects/EEG_voice_detection/analysis/data/Neuro2_2023/voc01_behavioral"
 all_file_names = [f for f in abs_file_paths(data_dir)]
 
-
 results=list()
 for file_name in all_file_names:
     result = slab.ResultsFile.read_file(str(file_name))
     results.extend(result)
-
 
 # Get information from the slab result files
 behavioral_results=dict()
@@ -69,7 +65,6 @@ for condition in conditions:
 
 results_sum_df= pd.DataFrame.from_dict(results)
 results_sum_df = results_sum_df.swapaxes("index", "columns")
-
 
 test= results_sum_df.copy()
 data_np=test.to_numpy()
