@@ -1,6 +1,5 @@
 """Code to analyze the behavioral data collected
 -> Select the stimuli for the EEG experiment based on behavioral pilot data
--> effect scaling of behavioral data per participant
 """
 import os
 from analysis.behavioral_summarize_data import summarize_data
@@ -57,4 +56,3 @@ for morph_ratio in morph_ratios:
 results_df = pd.DataFrame.from_dict(stdev_results)
 results_df.to_csv(results_DIR + '/stdev_responses')
 
-#test
