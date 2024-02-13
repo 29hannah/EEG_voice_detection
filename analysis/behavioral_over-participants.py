@@ -7,14 +7,17 @@ from analysis.behavioral_summarize_data import summarize_data
 from os import listdir
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
 
 DIR = "/Users/hannahsmacbook/PycharmProjects/EEG_voice_detection/analysis"
 data_DIR= DIR+ '/data/pilot/'
 results_DIR= DIR + "/results/pilot/"
 out_DIR_raw= results_DIR +"raw"
 out_DIR_sum=  results_DIR +"sum"
+out_DIR_plots=  results_DIR +"plots"
 
-dirs= [results_DIR, out_DIR_raw, out_DIR_sum]
+
+dirs= [results_DIR, out_DIR_raw, out_DIR_sum, out_DIR_plots]
 for dir in dirs:
     if not os.path.exists(dir):
         os.makedirs(dir)
@@ -39,13 +42,17 @@ results = pd.concat(appended_data)
 
 # Get the data for the final stimuli
 # Boxplot
-sns.boxplot(results, x= results["Morph ratio"], y=results["%Voice"])
+sns.boxplot(results, x=results["Morph ratio"], y=results["%Voice"])
+plt.savefig(out_DIR_plots+ "/boxplot_behavioral_data")
 
 # Calculate stdev over participants: Subset to morph ratio, calculate sted over participants % Voice
 morph_ratios = list(results["Morph ratio"].unique())
-
-stdev_results= dict()jj
+stdev_results= dict()
+i=1
 for morph_ratio in morph_ratios:
     df = results[results["Morph ratio"] == morph_ratio]
-    stdev_results[str(morph_ratio)]={"stdev %voice": df['%Voice'].std()}
+    stdev_results[str(i)]={"Morph ratio":morph_ratio , "stdev %voice": df['%Voice'].std()}
+    i=i+1
 
+results_df = pd.DataFrame.from_dict(stdev_results)
+results_df.to_csv(results_DIR + '/stdev_responses')
