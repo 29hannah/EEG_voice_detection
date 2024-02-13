@@ -5,6 +5,7 @@ from os import listdir
 import pandas as pd
 from scipy.stats import fisher_exact
 import numpy as np
+import scipy.stats as st
 
 # Comparing sets of binary behavioral data (AFC procedure)
 
@@ -24,8 +25,8 @@ morph_ratios.sort()
 discrim_results= []
 for file in files_sum:
     i = 0
+    data = pd.read_csv(out_DIR_sum + '/' + file)
     while i<len(morph_ratios)-1:
-        data = pd.read_csv(out_DIR_sum + '/' + file)
         morph_ratio_1= morph_ratios[i]
         morph_ratio_2=morph_ratios[i+1]
 
@@ -41,5 +42,28 @@ for file in files_sum:
         i=i+1
 
 # List with results tuples to df
-df = pd.DataFrame(data, columns =['Id', 'Morph ratio 1', 'Morph ratio 2', 'Odds ratio', 'p value'])
+df = pd.DataFrame(discrim_results, columns =['Id', 'Morph ratio 1', 'Morph ratio 2', 'Odds ratio', 'p value'])
 df.to_csv(results_DIR + '/behavioral_discriminability')
+
+
+# Analyze data in SDT form
+SDT_results= []
+for file in files_sum:
+    data = pd.read_csv(out_DIR_sum + '/' + file)
+    morph_ratio_1= 0.0
+    morph_ratio_2=1.0
+
+    hit_rate= [data[data["Morph ratio"] == morph_ratio_2].iloc[0]['%Voice']][0]
+    fa_rate= [data[data["Morph ratio"] == morph_ratio_1].iloc[0]['%Voice']][0]
+
+    discrim_z=st.norm.ppf(hit_rate) -st.norm.ppf(fa_rate)
+    decision_criterion= - (st.norm.ppf(hit_rate) -st.norm.ppf(fa_rate))/2
+
+    # Save the result
+    SDT_result=(data["Id"].iloc[0], morph_ratio_1, morph_ratio_2, discrim_z, decision_criterion)
+    SDT_results.append(SDT_result)
+
+
+# List with results tuples to df
+df = pd.DataFrame(SDT_results, columns =['Id', 'Morph ratio 1', 'Morph ratio 2', 'D', 'C'])
+df.to_csv(results_DIR + '/SDT_behavioral')
