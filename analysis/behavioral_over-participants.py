@@ -44,7 +44,7 @@ sns.boxplot(results, x= results["Morph ratio"], y=results["%Voice"])
 # Calculate stdev over participants: Subset to morph ratio, calculate sted over participants % Voice
 morph_ratios = list(results["Morph ratio"].unique())
 
-stdev_results= dict()
+stdev_results= dict()jj
 for morph_ratio in morph_ratios:
     df = results[results["Morph ratio"] == morph_ratio]
     stdev_results[str(morph_ratio)]={"stdev %voice": df['%Voice'].std()}
