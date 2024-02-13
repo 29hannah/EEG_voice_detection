@@ -30,13 +30,12 @@ for id in ids:
     summarize_data(id, data_DIR, out_DIR_raw, out_DIR_sum)
 
 # Read in the summarized files per participant and append data frames
-files_raw = [file for file in listdir(out_DIR_sum) if file.endswith('.csv')]
+files_sum = [file for file in listdir(out_DIR_sum) if file.endswith('.csv')]
 appended_data = []
-for file in files_raw:
+for file in files_sum:
     data = pd.read_csv(out_DIR_sum + '/' + file)
     appended_data.append(data)
 results = pd.concat(appended_data)
-
 
 
 # Get the data for the final stimuli

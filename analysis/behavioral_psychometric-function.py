@@ -1,4 +1,4 @@
-"""Fitting psychometric function for behavioral data (local machine)
+"""Fitting psychometric function for behavioral data (local version)
 """
 import slab
 import pathlib

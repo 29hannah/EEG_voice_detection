@@ -1,9 +1,8 @@
-"""This script contains the code to analyze and plot the EEG and behavioral data to compare the processing of ambiguos sounds
-(=morphs)
+"""This script contains the code to analyze and plot the EEG and behavioral data to compare the processing of ambiguous
+sounds
 Main purpose is to visualize the results; Permutation cluster test results and decoder are run in another script
 
 
-First version: January 2024
 """
 
 
