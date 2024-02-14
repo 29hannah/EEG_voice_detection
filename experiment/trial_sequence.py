@@ -7,13 +7,11 @@ import slab
 # Some basic stuff
 possible_transitions= n_conditions * n_conditions
 total_transitions= n_conditions * n_reps -1
-
 occurence_transitions= total_transitions/possible_transitions # needs to be integer
 # choose n_reps so that equal occurence of transitions possible
 n_reps=23
 while ((n_conditions * n_reps)/(n_conditions * n_conditions)).is_integer() == False:
     n_reps= n_reps+1
-print(n_reps)
 """
 
 # For the behavioral part
