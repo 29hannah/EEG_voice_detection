@@ -6,7 +6,10 @@ import pandas as pd
 from scipy.stats import fisher_exact
 import numpy as np
 import scipy.stats as st
+import seaborn as sns
 
+
+# TODO check correctness for the odds ratio
 # Comparing sets of binary behavioral data (AFC procedure)
 
 # Read in the behavioral data separtely for each participant
@@ -46,6 +49,13 @@ df = pd.DataFrame(discrim_results, columns =['Id', 'Morph ratio 1', 'Morph ratio
 df.to_csv(results_DIR + '/behavioral_discriminability')
 
 
+# Plot the results
+df['Morph Diff'] = df['Morph ratio 1'] + 0.05
+sns.set_style("darkgrid", {"axes.facecolor": ".9"})
+sns.lineplot(data=df, x=df["Morph Diff"], y=df["Odds ratio"], hue=df["Id"])
+sns.scatterplot(data=df, x=df["Morph Diff"], y=df["Odds ratio"], hue=df["Id"], legend=False)
+
+
 # Analyze data in SDT form
 SDT_results= []
 for file in files_sum:
@@ -56,8 +66,12 @@ for file in files_sum:
     hit_rate= [data[data["Morph ratio"] == morph_ratio_2].iloc[0]['%Voice']][0]
     fa_rate= [data[data["Morph ratio"] == morph_ratio_1].iloc[0]['%Voice']][0]
 
-    discrim_z=st.norm.ppf(hit_rate) -st.norm.ppf(fa_rate)
-    decision_criterion= - (st.norm.ppf(hit_rate) -st.norm.ppf(fa_rate))/2
+    if fa_rate!= 0:
+        discrim_z=st.norm.ppf(hit_rate) - st.norm.ppf(fa_rate)
+        decision_criterion= - (st.norm.ppf(hit_rate) -st.norm.ppf(fa_rate))/2
+    elif fa_rate == 0:
+        discrim_z = st.norm.ppf(hit_rate)
+        decision_criterion = (st.norm.ppf(hit_rate))
 
     # Save the result
     SDT_result=(data["Id"].iloc[0], morph_ratio_1, morph_ratio_2, discrim_z, decision_criterion)
@@ -65,5 +79,5 @@ for file in files_sum:
 
 
 # List with results tuples to df
-df = pd.DataFrame(SDT_results, columns =['Id', 'Morph ratio 1', 'Morph ratio 2', 'D', 'C'])
-df.to_csv(results_DIR + '/SDT_behavioral')
+SDT_df = pd.DataFrame(SDT_results, columns =['Id', 'Morph ratio 1', 'Morph ratio 2', 'D', 'C'])
+SDT_df.to_csv(results_DIR + '/SDT_behavioral')
