@@ -73,9 +73,15 @@ for file in files_raw:
 results_raw = pd.concat(appended_data)
 
 for id in ids:
+    f, axes = plt.subplots(2, 1, gridspec_kw={'height_ratios': [1, 1]})
     df_sub= results_raw[results_raw['Id'] == id]
-    sns.boxplot(data=df_sub, x=df_sub['Morph ratio'], y=df_sub['Reaction time']).set_title(id)
-    plt.ylim(-10, 5000)
+    df_sub_sum=results[results['Id'] == id]
+    sns.scatterplot(data=df_sub, x=df_sub_sum["Morph ratio"], y=df_sub_sum["%Voice"], legend=False,
+                    ax=axes[0]).set_title(id)
+    sns.lineplot(data=df_sub, x=df_sub_sum["Morph ratio"], y=df_sub_sum["%Voice"], legend=False,
+                    ax=axes[0])
+    sns.boxplot(data=df_sub, x=df_sub['Morph ratio'], y=df_sub['Reaction time'])
+    plt.ylim(-1000, 5000)
     plt.savefig(out_DIR_plots + "/ rt_"+id )
     plt.close()
 
