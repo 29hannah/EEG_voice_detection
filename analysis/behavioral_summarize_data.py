@@ -8,7 +8,6 @@ import pandas as pd
 def summarize_data(id, data_DIR, out_DIR_raw, out_DIR_sum):
     data_dir= data_DIR+id
 
-
     def abs_file_paths(directory):
         for dirpath, _, filenames in os.walk(directory):
             for f in filenames:
@@ -60,7 +59,7 @@ def summarize_data(id, data_DIR, out_DIR_raw, out_DIR_sum):
         elif 2.0 not in responses:
             no = 0
             yes = response_count[responses.index(1.0)]
-        elif 2.0 not in responses:
+        elif 1.0 not in responses:
             no = response_count[responses.index(2.0)]
             yes = 0
 
