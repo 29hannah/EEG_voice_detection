@@ -9,7 +9,6 @@ import scipy.stats as st
 import seaborn as sns
 
 
-# TODO check correctness for the odds ratio
 # Comparing sets of binary behavioral data (AFC procedure)
 
 # Read in the behavioral data separtely for each participant
