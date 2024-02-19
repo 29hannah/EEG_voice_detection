@@ -9,9 +9,11 @@ import string
 import os
 from EEG_voice_detection.experiment.config import get_config
 
-# TODO How long does the isi need to be? Why (not) random?
 
-participant_id = 'test_0502'
+# TODO check for solution after deviant: update collect responses
+
+
+participant_id = 'test_1602'
 stimulus_level=67
 
 
@@ -38,7 +40,7 @@ def crop_sound(sound, isi):
     out = out.ramp(duration=0.01)
     return out
 
-def load_to_buffer(sound, isi=random.uniform(1.5, 2.0)):
+def load_to_buffer(sound, isi=2.0):
     out = crop_sound(sound, isi)
     isi = slab.Sound.in_samples(isi, 48828)
     freefield.write(tag="playbuflen", value=isi, processors="RP2")
@@ -61,22 +63,20 @@ def collect_responses(seq, results_file):
     results_file.write(response, tag='response')
     results_file.write(is_correct, tag='is_correct')
     results_file.write(reaction_time, tag='reaction_time')
-    print('[Response ' + str(response) + ']', str(seq.n_trials) + ')')
+    print('Response:' + str(response) +'; RT: ' + str(reaction_time))
 
-def play_deviant():
-    deviant_sound = slab.Binaural.chirp(duration=0.5)
-    load_to_buffer(deviant_sound)
-    freefield.play()
-    print('Playing deviant')
-    freefield.wait_to_finish_playing()
+def collect_trial(seq, results_file):
+    results_file.write(seq.trials[seq.this_n], tag='morph_played')
+
+
 
 
 
 results_folder = 'C:\\projects\\EEG_voice_detection\\experiment\\results\\EEG'
 results_file = slab.ResultsFile(subject=participant_id, folder=results_folder)
-results_file.write('experiment', tag='stage')
+results_file.write('EEG_experiment', tag='stage')
 
-morph_seq = slab.Trialsequence(conditions=[1, 2, 3, 4, 5], n_reps=60, deviant_freq=0.1)
+
 
 
 #Get list of stimuli in slab format
@@ -91,23 +91,33 @@ for sound_file in os.listdir(os.path.join(stim_path)):
 
 morph_ratios= list(stim_dict.keys())
 
+morph_seq = slab.Trialsequence(conditions=[1,5,6,7,11], n_reps=5, deviant_freq=0.3)
+
 input('Press enter to start the experiment')
 
 for morph in morph_seq:
+    print('###Trial', morph_seq.this_n+1, '/', morph_seq.n_trials, '####')
     if morph == 0:
-        trig_value = 6
+        deviant_sound = slab.Binaural.chirp(duration=len(sound))
+        deviant_sound.level = stimulus_level
+        load_to_buffer(deviant_sound)
+        trig_value = len(morph_ratios) + 1
         freefield.write(tag='trigcode', value=trig_value, processors='RX82')
-        play_deviant()
+        freefield.play()
+        print('Playing deviant')
         collect_responses(morph_seq, results_file)
+        freefield.wait_to_finish_playing()
     else:
-        stimulus = stim_dict[morph_ratios[morph]]
+        stimulus = stim_dict[morph_ratios[morph-1]]
         stimulus.level = stimulus_level
         load_to_buffer(stimulus)
         trig_value = morph
         freefield.write(tag='trigcode', value=trig_value, processors='RX82')
         freefield.play()
-        print('Playing morph ', morph_ratios[morph])
+        print('Playing morph ', morph_ratios[morph-1])
+        collect_trial(morph_seq, results_file)
         freefield.wait_to_finish_playing(proc="RP2", tag="playback")
-        # collect_responses(intensity_seq, results_file)
+
+
 results_file.write(morph_seq, tag='sequence')
 print("Saved participant responses")
