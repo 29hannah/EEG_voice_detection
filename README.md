@@ -1,5 +1,4 @@
 # Correlates of voice detection in EEG 
-Projects linking behavioral data to EEG data. 
 
 * Analysis 
 	* EEG: ERP analysis of the collected EEG data using [MNE python](https://mne.tools/stable/index.html)
