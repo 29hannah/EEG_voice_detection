@@ -4,16 +4,14 @@ import copy
 import pathlib
 import numpy
 import time
-import random
-import string
 import os
 from EEG_voice_detection.experiment.config import get_config
+from EEG_voice_detection.experiment.trial_sequence import generate_slab_freq
+from datetime import datetime
+import pandas as pd
 
 
-# TODO check for solution after deviant: update collect responses
-
-
-participant_id = 'test_1602'
+participant_id = 'test_2202'
 stimulus_level=67
 
 
@@ -47,6 +45,7 @@ def load_to_buffer(sound, isi=2.0):
     freefield.write(tag="data_l", value=out.left.data.flatten(), processors="RP2")
     freefield.write(tag="data_r", value=out.right.data.flatten(), processors="RP2")
 
+'''
 def collect_responses(seq, results_file):
     response = None
     reaction_time = None
@@ -67,16 +66,27 @@ def collect_responses(seq, results_file):
 
 def collect_trial(seq, results_file):
     results_file.write(seq.trials[seq.this_n], tag='morph_played')
-
-
-
+'''
+def collect_response():
+    response = None
+    reaction_time = None
+    start_time = time.time()
+    while not freefield.read(tag="response", processor="RP2"):
+        time.sleep(0.01)
+    curr_response = int(freefield.read(tag="response", processor="RP2"))
+    if curr_response != 0:
+        reaction_time = int(round(time.time() - start_time, 3) * 1000)
+        response = int(numpy.log2(curr_response))
+        # response for deviant stimulus is reset to 0
+    return response, reaction_time
 
 
 results_folder = 'C:\\projects\\EEG_voice_detection\\experiment\\results\\EEG'
-results_file = slab.ResultsFile(subject=participant_id, folder=results_folder)
-results_file.write('EEG_experiment', tag='stage')
-
-
+results_folder_participant= results_folder + '\\' + participant_id
+if not os.path.isdir(results_folder_participant):
+    os.makedirs(results_folder_participant)
+now=datetime.now()
+results_file_name = participant_id +  '_EEG_'+now.strftime('%y-%m-%d_%H-%M-%S')+'.csv'
 
 
 #Get list of stimuli in slab format
@@ -89,15 +99,18 @@ for sound_file in os.listdir(os.path.join(stim_path)):
     morph_ratio = sound_file[-7:-4]
     stim_dict[morph_ratio] = sound
 
-morph_ratios= list(stim_dict.keys())
+#morph_ratios= list(stim_dict.keys())
+morph_ratios= ['0.0',  '0.4', '0.5', '0.6', '1.0']
+#morph_seq = slab.Trialsequence(conditions=[1,2, 3, 4,5, 6], n_reps=5, deviant_freq=0.1)
 
-morph_seq = slab.Trialsequence(conditions=[1,5,6,7,11], n_reps=5, deviant_freq=0.3)
+morph_seq=generate_slab_freq(n_conditions=6, n_reps=54)
 
 input('Press enter to start the experiment')
 
+results={}
 for morph in morph_seq:
     print('###Trial', morph_seq.this_n+1, '/', morph_seq.n_trials, '####')
-    if morph == 0:
+    if morph == 6: # Deviant is n_conditions+1
         deviant_sound = slab.Binaural.chirp(duration=len(sound))
         deviant_sound.level = stimulus_level
         load_to_buffer(deviant_sound)
@@ -105,7 +118,12 @@ for morph in morph_seq:
         freefield.write(tag='trigcode', value=trig_value, processors='RX82')
         freefield.play()
         print('Playing deviant')
-        collect_responses(morph_seq, results_file)
+        response, reaction_time = collect_response()
+        results[str(morph_seq.this_n)] = {'Response': response,
+                                          'Morph played':'Deviant',
+                                          'Reaction time': reaction_time
+                                          }
+        #collect_responses(morph_seq, results_file)
         freefield.wait_to_finish_playing()
     else:
         stimulus = stim_dict[morph_ratios[morph-1]]
@@ -115,9 +133,19 @@ for morph in morph_seq:
         freefield.write(tag='trigcode', value=trig_value, processors='RX82')
         freefield.play()
         print('Playing morph ', morph_ratios[morph-1])
-        collect_trial(morph_seq, results_file)
+        #collect_trial(morph_seq, results_file)
+        results[str(morph_seq.this_n)] = {'Response': 'Nan',
+                                          'Morph played': morph_ratios[morph - 1],
+                                          'Reaction time':'Nan',
+                                          'Participant': participant_id,
+                                          'Phase': 'EEG'
+                                          }
         freefield.wait_to_finish_playing(proc="RP2", tag="playback")
 
 
-results_file.write(morph_seq, tag='sequence')
+results_df=pd.DataFrame.from_dict(results)
+results_df=results_df.swapaxes('index', 'columns')
+results_df.to_csv(results_folder_participant + '\\'+ results_file_name)
+#results_file.write(morph_seq, tag='sequence')
 print("Saved participant responses")
+
