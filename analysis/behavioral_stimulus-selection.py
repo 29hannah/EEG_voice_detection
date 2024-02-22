@@ -24,8 +24,9 @@ for dir in dirs:
 
 ids = list(name for name in os.listdir(data_DIR)
            if os.path.isdir(os.path.join(data_DIR, name)))
+ids = [k for k in ids if '.DS_Store' not in k]
 
-# Only necessary when runnig the analysis for the first time/making changes to the code summarizing the data
+# Only necessary when running the analysis for the first time/making changes to the code summarizing the data
 for id in ids:
     print(id)
     summarize_data(id, data_DIR, out_DIR_raw, out_DIR_sum)
@@ -37,7 +38,6 @@ for file in files_sum:
     data = pd.read_csv(out_DIR_sum + '/' + file)
     appended_data.append(data)
 results = pd.concat(appended_data)
-
 
 # Get the data for the final stimuli
 # Calculate stdev over participants: Subset to morph ratio, calculate stdev over participants % Voice
@@ -85,3 +85,52 @@ for id in ids:
     plt.savefig(out_DIR_plots + "/ rt_"+id )
     plt.close()
 
+# Analysis new file format
+appended_data = []
+for id in ids:
+    files= [file for file in listdir(data_DIR+id) if file.endswith('.csv')]
+    file = [k for k in files if 'experiment'  in k]
+    data = pd.read_csv(data_DIR+id + '/' + file[0])
+    appended_data.append(data)
+results_df = pd.concat(appended_data)
+
+
+conditions= list(results_df["Morph played"].unique())
+results=dict()
+i=1
+for id in ids:
+    df_sub = results_df[results_df['Participant'] == id]
+    for condition in conditions:
+        df = df_sub[df_sub["Morph played"] == condition]
+        morph= df['Morph played'].iloc[0]
+        response_count=list(df['Response'].value_counts().values)
+        responses = list(df['Response'].value_counts().index.values)
+        if len(response_count)!=1:
+            no= response_count[responses.index(2.0)]
+            yes= response_count[responses.index(1.0)]
+        elif 2.0 not in responses:
+            no=0
+            yes= response_count[responses.index(1.0)]
+        elif 1.0 not in responses:
+            no =response_count[responses.index(2.0)]
+            yes =0
+        results[str(i)] = {"Condition": condition, "Morph ratio": morph,  "Voice responses":yes, "N": sum(response_count),
+                           "Participant":id
+                           }
+        i=i+1
+results_sum_df= pd.DataFrame.from_dict(results)
+results_sum_df = results_sum_df.swapaxes("index", "columns")
+
+results_sum_df["%Voice"] = (results_sum_df["Voice responses"] / results_sum_df["N"])
+
+for id in ids:
+    f, axes = plt.subplots(2, 1, gridspec_kw={'height_ratios': [1, 1]})
+    df_sub= results_sum_df[results_sum_df['Participant'] == id]
+    sns.scatterplot(data=df_sub, x=df_sub["Morph ratio"], y=df_sub["%Voice"], legend=False,
+                    ax=axes[0]).set_title(id)
+    sns.lineplot(data=df_sub, x=df_sub["Morph ratio"], y=df_sub["%Voice"], legend=False,
+                    ax=axes[0])
+    sns.boxplot(data=results_df, x=results_df['Morph played'], y=results_df['Reaction time'])
+    plt.ylim(-1000, 5000)
+    plt.savefig(out_DIR_plots + "/ rt_"+id )
+    plt.close()
