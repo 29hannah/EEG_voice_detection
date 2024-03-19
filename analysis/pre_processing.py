@@ -12,11 +12,6 @@ _scaling = 10**6
 
 
 
-# TODO button press is not recorded/no EEG trigger
-
-from pathlib import PosixPath
-DIR = PosixPath("/")
-
 def noise_rms(epochs):
     global scaling
     epochs_tmp = epochs.copy()
@@ -251,23 +246,23 @@ def apply_ICA(epochs, reference, n_components=None, method="fastica",
 
 
 if __name__ == "__main__":
-    experiment = "test"  # "vocal_effort" or "noise" data.
     DIR = pathlib.Path(os.getcwd())
     with open(DIR / "analysis" / "settings" / "preproc_config.json") as file:
         cfg = json.load(file)
     with open(DIR / "analysis" / "settings" / "mapping.json") as file:
         mapping = json.load(file)
 
-    data_DIR = DIR /"analysis"/ "data" / "Neuro2_2023" / "EEG"
-    fig_path =DIR/"analysis"/ "data" / "Neuro2_2023" / "EEG"/"figures"
+    data_DIR = DIR /"analysis"/ "data" / "pilot"
+    fig_path =DIR/"analysis"/ "results" / "pilot" / "EEG"/"figures"
+    results_path= DIR/"analysis"/ "results" / "pilot" / "EEG"
 
     # get subject ids
     ids = list(name for name in os.listdir(data_DIR)
                if os.path.isdir(os.path.join(data_DIR, name)))
+    id=ids[2]
 
     # STEP 1: make raw.fif files and save them into raw_folder.
     for id in ids:  # Iterate through subjects.
-        id = ids[1]
         folder_path = data_DIR / id
         header_files = folder_path.glob("*.vhdr")
         raw_files = []
@@ -276,10 +271,10 @@ if __name__ == "__main__":
                 header_file, preload=True))  # read BrainVision files.
         raw = mne.concatenate_raws(raw_files)  # make raw files
         # make folders for different file types + preprocessing figures.
-        epochs_folder = data_DIR / id / "epochs"
-        raw_folder = data_DIR / id / "raw_data"
+        epochs_folder = results_path / id / "epochs"
+        raw_folder = results_path / id / "raw_data"
         fig_folder = fig_path / id
-        evokeds_folder = data_DIR / id / "evokeds"
+        evokeds_folder = results_path / id / "evokeds"
         for folder in epochs_folder, raw_folder, fig_folder, evokeds_folder:
             if not os.path.isdir(folder):
                     os.makedirs(folder)
@@ -299,12 +294,8 @@ if __name__ == "__main__":
                         notch=cfg["filtering"]["notch"])  # bandpass filter
         events = mne.events_from_annotations(raw)[0]  # get events
 
-        # Plot events to ensure correct assignement
-        fig = mne.viz.plot_events(events)
-
-
         epochs = mne.Epochs(raw, events, tmin=cfg["epochs"]["tmin"], tmax=cfg["epochs"]["tmax"],
-                            event_id=cfg["epochs"][f"event_id_{experiment}"], preload=True,
+                            event_id=cfg["epochs"][f"event_id"], preload=True,
                             baseline=cfg["epochs"]["baseline"], detrend=cfg["epochs"]["detrend"])  # apply baseline
         del raw, raw_files  # del raw data to save working memory.
         # STEP 3: rereference epochs.
@@ -341,7 +332,7 @@ if __name__ == "__main__":
             epochs_folder / pathlib.Path(id + "-epo.fif"), overwrite=True)
         # STEP 6: average epochs and write evokeds to a file.
         evokeds = [epochs_clean[condition].average()
-                   for condition in cfg["epochs"][f"event_id_{experiment}"].keys()]
+                   for condition in cfg["epochs"][f"event_id"].keys()]
         mne.write_evokeds(evokeds_folder / pathlib.Path(id + "-ave.fif"), evokeds, overwrite=True)
         # delete data to save working memory.
         del epochs, epochs_ref, epochs_ica, epochs_clean, evokeds

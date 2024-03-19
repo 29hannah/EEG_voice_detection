@@ -6,24 +6,14 @@
     "nfft": 400
   },
   "epochs": {
-    "event_id_test": {
-      "deviant": 6,
-      "category/0": 1,
-      "category/1": 2,
-      "category/2": 3,
-      "category/3": 4,
-      "category/4": 5
-    },
-    "event_id_vocal_effort": {
-      "deviant": 6,
-      "vocal_effort/1": 1,
-      "vocal_effort/2": 2,
-      "vocal_effort/3": 3,
-      "vocal_effort/4": 4,
-      "vocal_effort/5": 5
+    "event_id": {
+      "deviant": 4,
+      "morph/0.0": 1,
+      "morph/0.5": 2,
+      "morph/1.0": 3
     },
     "tmin": -0.2,
-    "tmax": 1.0,
+    "tmax": 0.5,
     "detrend": null,
     "baseline": null
   },
