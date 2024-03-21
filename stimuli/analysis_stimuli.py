@@ -11,6 +11,7 @@ from parselmouth.praat import call
 import pandas as pd
 import matplotlib.pyplot as plt
 
+#TODO save results as csv file
 
 def abs_file_paths(directory):
     for dirpath, _, filenames in os.walk(directory):
@@ -19,12 +20,12 @@ def abs_file_paths(directory):
                 yield pathlib.Path(join(dirpath, f))
 
 folder_path = pathlib.Path
-folder_path= '/Users/hannahsmacbook/PycharmProjects/AVH/stimuli/sound_files/whisper_2/resampled_rms-norm_morphs_behavior_Leipzig'
+#folder_path= '/Users/hannahsmacbook/PycharmProjects/AVH/stimuli/sound_files/whisper_2/resampled_rms-norm_morphs_behavior_Leipzig'
+folder_path= '/Users/hannahsmacbook/PycharmProjects/EEG_voice_detection/stimuli/sound_files/final_sounds'
+
 
 all_file_names = [f for f in abs_file_paths(folder_path)]
 all_file_names.sort()
-
-
 
 # functions to create color gradient
 def hex_to_RGB(hex_str):
@@ -106,8 +107,8 @@ features= df.axes[0].tolist()
 #Plotting the results
 
 #Setting color gradient
-color2 = "#000000 "
-color1 = "#ADD8E6"
+color1 = "#000000 "
+color2 = "#ADD8E6"
 num_points=11
 colors=get_color_gradient(color1, color2, num_points)
 
@@ -126,8 +127,6 @@ for feature in features:
          for i in range(len(y)):
              ax.plot(y[i],color= colors[i],  label=str(x[i]))
              leg = ax.legend()
-
-
 
 
 
