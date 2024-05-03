@@ -10,8 +10,8 @@ import pandas as pd
 from datetime import datetime
 
 
-participant_id = 'test_220_2'
-stimulus_level=67
+participant_id = 'sub_02'
+stimulus_level=70
 phase= 'experiment'# Can either be training or experiment
 
 slab.set_default_samplerate(44100)
@@ -79,7 +79,7 @@ results_file_name = participant_id +  '_'+ phase +'_'+now.strftime('%y-%m-%d_%H-
 
 # Get list of stimuli in slab format
 stim_dict=dict()
-stim_path= 'C:\\projects\\EEG_voice_detection\\experiment\\stimuli'
+stim_path= 'C:\\projects\\EEG_voice_detection\\experiment\\stimuli_peak_aligned'
 for sound_file in os.listdir(os.path.join(stim_path)):
     sound = slab.Sound.read(os.path.join(stim_path, sound_file))
     sound.level= stimulus_level
@@ -89,8 +89,6 @@ for sound_file in os.listdir(os.path.join(stim_path)):
 
 morph_ratios= list(stim_dict.keys())
 
-#  Get deviant sound->signal for halfway through data collection and end of experiment
-deviant_sound = slab.Binaural.chirp(duration=sound.duration)
 
 input('Press enter to start the experiment')
 
@@ -104,11 +102,6 @@ if phase=='experiment':
 results=dict()
 for morph in morph_seq:
     print('###Trial', morph_seq.this_n +1, '/', morph_seq.n_trials, '###')
-    if morph_seq.this_n==round(morph_seq.n_trials/2)-1:
-        load_to_buffer(deviant_sound)
-        print('Playing halfway signal')
-        freefield.play()
-        freefield.wait_to_finish_playing(proc="RP2", tag="playback")
     stimulus= stim_dict[morph_ratios[morph-1]]
     load_to_buffer(stimulus)
     print('Playing morph ', morph_ratios[morph-1])
@@ -119,18 +112,14 @@ for morph in morph_seq:
                                      'Morph played': morph_ratios[morph-1],
                                      'Reaction time': reaction_time,
                                      'Participant': participant_id,
-                                     'Phase': 'EEG'
+                                     'Phase': phase
                                }
     freefield.wait_to_finish_playing(proc="RP2", tag="playback")
     #print('End of stimulus')
     #collect_responses(morph_seq, results_file)
     time.sleep(0.5) #wait 0.5 secs before playing the next stimulus-> in a sense the isi
 
-# When the experiment is done play deviant
-load_to_buffer(deviant_sound)
-freefield.play()
-print('Playing signal tone')
-freefield.wait_to_finish_playing(proc="RP2", tag="playback")
+
 print('##End of the experiment###')
 
 results_df=pd.DataFrame.from_dict(results)
