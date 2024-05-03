@@ -10,7 +10,7 @@ import os
 # %matplotlib qt
 _scaling = 10**6
 
-
+""" Max's script for the distance project"""
 
 def noise_rms(epochs):
     global scaling
