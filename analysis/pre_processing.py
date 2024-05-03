@@ -252,14 +252,13 @@ if __name__ == "__main__":
     with open(DIR / "analysis" / "settings" / "mapping.json") as file:
         mapping = json.load(file)
 
-    data_DIR = DIR /"analysis"/ "data" / "pilot"
-    fig_path =DIR/"analysis"/ "results" / "pilot" / "EEG"/"figures"
-    results_path= DIR/"analysis"/ "results" / "pilot" / "EEG"
+    data_DIR = DIR /"analysis"/ "data" / "study"
+    results_path= DIR/"analysis"/ "results" / "study" / "EEG"
 
     # get subject ids
     ids = list(name for name in os.listdir(data_DIR)
                if os.path.isdir(os.path.join(data_DIR, name)))
-    id=ids[2]
+    id=ids[0]
 
     # STEP 1: make raw.fif files and save them into raw_folder.
     for id in ids:  # Iterate through subjects.
@@ -273,7 +272,7 @@ if __name__ == "__main__":
         # make folders for different file types + preprocessing figures.
         epochs_folder = results_path / id / "epochs"
         raw_folder = results_path / id / "raw_data"
-        fig_folder = fig_path / id
+        fig_folder = results_path / id / "figures"
         evokeds_folder = results_path / id / "evokeds"
         for folder in epochs_folder, raw_folder, fig_folder, evokeds_folder:
             if not os.path.isdir(folder):
@@ -287,12 +286,16 @@ if __name__ == "__main__":
         montage = mne.channels.read_custom_montage(fname=montage_path)
         raw.set_montage(montage)
         raw.save(raw_folder / pathlib.Path(id + "_raw.fif"), overwrite=True)
+        #raw.plot()
+
         # STEP 2: bandpass filter at 1 - 40 Hz and epoch raw data.
         raw = filtering(raw,
                         highpass=cfg["filtering"]["highpass"],
                         lowpass=cfg["filtering"]["lowpass"],
                         notch=cfg["filtering"]["notch"])  # bandpass filter
         events = mne.events_from_annotations(raw)[0]  # get events
+
+        #mne.viz.plot_events(events)
 
         epochs = mne.Epochs(raw, events, tmin=cfg["epochs"]["tmin"], tmax=cfg["epochs"]["tmax"],
                             event_id=cfg["epochs"][f"event_id"], preload=True,

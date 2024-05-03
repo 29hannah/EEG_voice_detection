@@ -7,10 +7,11 @@
   },
   "epochs": {
     "event_id": {
-      "deviant": 4,
+      "deviant": 5,
       "morph/0.0": 1,
-      "morph/0.5": 2,
-      "morph/1.0": 3
+      "morph/0.4": 2,
+      "morph/0.6": 3,
+      "morph/1.0": 4
     },
     "tmin": -0.2,
     "tmax": 0.5,
