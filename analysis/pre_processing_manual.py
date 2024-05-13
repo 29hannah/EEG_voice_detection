@@ -210,7 +210,8 @@ ransac = Ransac(n_jobs=cfg["reref"]["ransac"]["n_jobs"], n_resample=cfg["reref"]
 ransac.fit(epochs_clean)
 
 epochs_clean.average().plot(exclude=[])
-bads=["FT9", "FT10"] #Add channel names to exclude here
+
+bads=["C1", "P5", "C6", "FC3", "CP3"] #Add channel names to exclude here
 if len(bads) != 0:
     for bad in bads:
         if bad not in ransac.bad_chs_:
@@ -255,7 +256,7 @@ ax[0].set_title(f"FCz, SNR={snr_pre:.2f}")
 ax[1].set_title(f"{type}, SNR={snr_post:.2f}")
 fig.tight_layout()
 fig.savefig(
-    fig_folder / pathlib.Path(f"{type}_reference.pdf"), dpi=800)
+    fig_folder / pathlib.Path("average_reference.pdf"), dpi=800)
 plt.close()
 
 
@@ -269,15 +270,8 @@ ica.fit(epochs_ica)
 ref = mne.preprocessing.read_ica(fname=reference_path)
 ica.plot_components()
 
-epochs_clean.average().plot(exclude=[])
-bads=["FT9", "FT10"] #Add channels names to exclude here
-if len(bads) != 0:
-    for bad in bads:
-        if bad not in ransac.bad_chs_:
-            ransac.bad_chs_.extend(bads)
 
-
-ica.exclude = [0] #List of integer components to exclude
+ica.exclude = [1] #List of integer components to exclude
 
 # Plot excluded components
 ica.plot_components(ica.exclude, show=False)
