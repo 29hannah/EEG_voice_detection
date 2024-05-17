@@ -14,7 +14,7 @@ def abs_file_paths(directory):
 
 folder_path = pathlib.Path
 #folder_path= '/Users/hannahsmacbook/PycharmProjects/AVH/stimuli/sound_files/whisper_2/resampled_rms-norm_morphs_behavior_Leipzig'
-folder_path= '/Users/hannahsmacbook/PycharmProjects/EEG_voice_detection/stimuli/sound_files/ramped_sounds'
+folder_path= '/Users/hannahsmacbook/PycharmProjects/EEG_voice_detection/stimuli/sound_files/cut_sounds'
 
 all_file_names = [f for f in abs_file_paths(folder_path)]
 
@@ -30,7 +30,7 @@ for file_name in all_file_names:
     wavfile.write(out_folder_path + "/d_"+ file_name.stem + ".wav", rate, reduced_noise)
 
 
-out_folder_path2= '/Users/hannahsmacbook/PycharmProjects/EEG_voice_detection/stimuli/sound_files/final_sounds'
+out_folder_path2= '/Users/hannahsmacbook/PycharmProjects/EEG_voice_detection/stimuli/sound_files/resampled_sounds'
 if not os.path.exists(out_folder_path2):
     os.makedirs(out_folder_path2)
     print("path did not exist, path created")
@@ -44,4 +44,4 @@ for file_name in all_file_names2:
     sound = sound.resample(new_rate)
     sound_mon=sound.left
     sound_mon=slab.Sound(sound_mon)
-    sound_mon.write(out_folder_path2+ "/s_n_"+ file_name.stem+".wav", normalise=True)
+    sound_mon.write(out_folder_path2+ "/s_"+ file_name.stem+".wav", normalise=True)

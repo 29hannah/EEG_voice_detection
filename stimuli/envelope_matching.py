@@ -49,3 +49,6 @@ voice_sound.write("/Users/hannahsmacbook/PycharmProjects/EEG_voice_detection/sti
                   normalise=True)
 non_voice_sound_voice_env_sound.write("/Users/hannahsmacbook/PycharmProjects/EEG_voice_detection/stimuli/sound_files/envelope_mod/nonvoice_sound.wav",
                                 normalise=True)
+
+
+

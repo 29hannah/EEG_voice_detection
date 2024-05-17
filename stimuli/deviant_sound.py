@@ -2,8 +2,7 @@
 -Focus on the vocal aspect of the sound """
 from pydub import AudioSegment
 
-filename = "/Users/hannahsmacbook/PycharmProjects/" \
-           "EEG_voice_detection/stimuli/sound_files/peak_aligned/duration-0.5953346440566888_1.0.wav"
+filename = "/Users/hannahsmacbook/PycharmProjects/EEG_voice_detection/stimuli/sound_files/env_morphs/r_e_s_d_c_morph-1.0.wav"
 sound = AudioSegment.from_file(filename, format=filename[-3:])
 octaves = 0.5
 new_sample_rate = int(sound.frame_rate * (2.0 ** octaves))
