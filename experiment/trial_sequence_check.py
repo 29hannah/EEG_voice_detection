@@ -17,7 +17,7 @@ n_reps= 54# has to be a multiple of n_conditions
 sequences=[]
 for i in range(500):
     print(i)
-    morph_seq=generate_slab_freq(n_conditions, n_reps)
+    morph_seq = generate_slab_freq(n_conditions=4, n_reps=40)
     sequences.append(morph_seq.trials)
 
 # To check that all elements have the same frequency of occurrence
@@ -55,7 +55,4 @@ for i in range(500):
     print(i)
     trans.append(np.sum( morph_seq.transitions() != ideal_trans))
 plt.plot(trans)
-
-
-
 
