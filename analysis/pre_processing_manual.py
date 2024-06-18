@@ -145,13 +145,16 @@ with open(DIR / "analysis" / "settings" / "mapping.json") as file:
     mapping = json.load(file)
 
 data_DIR = DIR /"analysis"/ "data" / "study"
+#data_DIR = DIR /"analysis"/ "data" / "pilot"
+
 results_path= DIR/"analysis"/ "results" / "study" / "EEG"
+#results_path= DIR/"analysis"/ "results" / "pilot" / "EEG"
 
 # Get the subject ids
 ids = list(name for name in os.listdir(data_DIR)
                if os.path.isdir(os.path.join(data_DIR, name)))
 
-subj= ids[0] #set to id/subject whose data you want to preprocess
+subj= 'sub_13' #set to id/subject whose data you want to preprocess
 
 
 # Define directories for subject
@@ -192,7 +195,7 @@ raw = filtering(raw,
 
 ### STEP 3: Epoch the raw data and apply baseline ###
 events = mne.events_from_annotations(raw)[0]  # Get events
-mne.viz.plot_events(events) # Plot events
+#mne.viz.plot_events(events) # Plot events
 epochs = mne.Epochs(raw, events, tmin=cfg["epochs"]["tmin"], tmax=cfg["epochs"]["tmax"],
                     event_id=cfg["epochs"][f"event_id"], preload=True,
                     baseline=cfg["epochs"]["baseline"], detrend=cfg["epochs"]["detrend"])  # Epoch data and apply baseline
@@ -211,12 +214,12 @@ ransac.fit(epochs_clean)
 
 epochs_clean.average().plot(exclude=[])
 
-bads=["C1", "P5", "C6", "FC3", "CP3"] #Add channel names to exclude here
+bads=["PO8", "PO10", "Oz"] #Add channel names to exclude here
 if len(bads) != 0:
     for bad in bads:
         if bad not in ransac.bad_chs_:
             ransac.bad_chs_.extend(bads)
-
+print(ransac.bad_chs_)
 
 epochs_clean = ransac.transform(epochs_clean)
 
@@ -253,7 +256,7 @@ fig, ax = plt.subplots(2)
 epochs.average().plot(axes=ax[0], show=False)
 epochs_reref.average().plot(axes=ax[1], show=False)
 ax[0].set_title(f"FCz, SNR={snr_pre:.2f}")
-ax[1].set_title(f"{type}, SNR={snr_post:.2f}")
+ax[1].set_title(f"average, SNR={snr_post:.2f}")
 fig.tight_layout()
 fig.savefig(
     fig_folder / pathlib.Path("average_reference.pdf"), dpi=800)
@@ -269,9 +272,10 @@ ica = ICA(n_components=cfg["ica"]["n_components"], method=cfg["ica"]["method"])
 ica.fit(epochs_ica)
 ref = mne.preprocessing.read_ica(fname=reference_path)
 ica.plot_components()
+ica.plot_sources(inst=epochs, show=False, start=0,
+                 stop=10, show_scrollbars=False)
 
-
-ica.exclude = [1] #List of integer components to exclude
+ica.exclude = [2] #List of integer components to exclude
 
 # Plot excluded components
 ica.plot_components(ica.exclude, show=False)
@@ -314,6 +318,29 @@ plt.savefig(
     fig_folder / pathlib.Path("clean_evoked.pdf"), dpi=800)
 plt.close()
 
+### STEP 7: Apply AutoReject ###
+epochs_clean = autoreject_epochs(
+            epochs_ica, n_interpolate=cfg["autoreject"]["n_interpolate"],
+            n_jobs=cfg["autoreject"]["n_jobs"],
+            cv=cfg["autoreject"]["cv"],
+            thresh_method=cfg["autoreject"]["thresh_method"])
+epochs_clean.apply_baseline((None, 0))
+
+
+# Plot the AutoReject results
+fig, ax = plt.subplots(2)
+epochs_clean.average().plot_image(
+    titles=f"SNR:{snr(epochs_clean):.2f}", show=False, axes=ax[0])
+
+epochs_clean.average().plot(show=False, axes=ax[1])
+plt.tight_layout()
+plt.savefig(
+    fig_folder / pathlib.Path("clean_evoked.pdf"), dpi=800)
+plt.close()
+
+
+epochs_clean.save(
+    epochs_folder / pathlib.Path(id + "-epo.fif"), overwrite=True)
 
 ### STEP 8: Average epochs and write evokeds###
 evokeds = [epochs_clean[condition].average()

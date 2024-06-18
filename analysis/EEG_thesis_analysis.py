@@ -26,7 +26,7 @@ with open(DIR / "analysis" / "settings" / "preproc_config.json") as file:
 
 
 ### Analysis within participants ###
-subj= "sub_14" # Define which participant's data to analyse
+subj= "sub_15" # Define which participant's data to analyse
 
 
 # Define directories for subject
@@ -128,8 +128,31 @@ plt.close()
 data_DIR= EEG_DIR = DIR / "analysis" / "results" /"study"/ "EEG"
 ids = list(name for name in os.listdir(data_DIR)
                if os.path.isdir(os.path.join(data_DIR, name)))
-subjs=['sub_08', 'sub_09', 'sub_10', 'sub_11', 'sub_07',]
+subjs=['sub_08', 'sub_09', 'sub_10', 'sub_11', 'sub_07', 'sub_12','sub_13', 'sub_14']
 
+# Behaviour
+appended_data = []
+for subj in subjs:
+    data = pd.read_csv(str(behavior_results_DIR) +'/'+ subj + '_summarized-behavior.csv')
+    appended_data.append(data)
+
+df_behav = pd.concat(appended_data)
+
+sns.set_style("darkgrid", {"axes.facecolor": ".9"})
+sns.set_theme(rc={'figure.figsize':(8, 6)})
+
+#Boxplot to visualise
+sns.catplot(data=df_behav, x="Morph ratio", y="%Voice", kind="box")
+
+# Histograms to visualise
+fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, sharex=True, sharey=True)
+
+sns.histplot(data=df_behav[df_behav["Morph ratio"] == 0.0], x="%Voice", binwidth=0.1, ax=ax1)
+sns.histplot(data=df_behav[df_behav["Morph ratio"] == 0.4], x="%Voice", binwidth=0.1, ax=ax2)
+sns.histplot(data=df_behav[df_behav["Morph ratio"] == 0.6], x="%Voice", binwidth=0.1, ax=ax3)
+sns.histplot(data=df_behav[df_behav["Morph ratio"] == 1.0], x="%Voice", binwidth=0.1, ax=ax4)
+
+# EEG
 evokeds_subj={}
 evokeds00=list()
 evokeds04=list()
@@ -153,7 +176,41 @@ for subj in subjs:
     evokeds_subj[subj]= evoked
 
 
-# Get averaged evokeds
+# Get the amplitude per subject
+channels = ["FC6", "FC5", "FCz"]
+tmin= 0.19
+tmax= 0.26
+
+results = []
+for subj in subjs:
+    behavior_df= df_behav[df_behav["subj"]==subj]
+    evoked = evokeds_subj[subj]
+    for channel in channels:
+        morph00 = evoked[1].copy().pick(channel).crop(tmin=tmin, tmax=tmax)
+        morph04 = evoked[2].copy().pick(channel).crop(tmin=tmin, tmax=tmax)
+        morph06 = evoked[3].copy().pick(channel).crop(tmin=tmin, tmax=tmax)
+        morph10 = evoked[4].copy().pick(channel).crop(tmin=tmin, tmax=tmax)
+        # Extract mean amplitude in µV over time
+        mean_amp_morph00 = morph00.data.mean(axis=1) * 1e6
+        mean_amp_morph04 = morph04.data.mean(axis=1) * 1e6
+        mean_amp_morph06 = morph06.data.mean(axis=1) * 1e6
+        mean_amp_morph10 = morph10.data.mean(axis=1) * 1e6
+
+        result = [(subj, 0.0, channel, tmin, tmax, mean_amp_morph00[0],
+                   behavior_df[behavior_df["Morph ratio"] == 0.0]['%Voice'].iloc[0]),
+                  (subj, 0.4, channel, tmin, tmax, mean_amp_morph04[0],
+                   behavior_df[behavior_df["Morph ratio"] == 0.4]['%Voice'].iloc[0]),
+                  (subj, 0.6, channel, tmin, tmax, mean_amp_morph06[0],
+                   behavior_df[behavior_df["Morph ratio"] == 0.6]['%Voice'].iloc[0]),
+                  (subj, 1.0, channel, tmin, tmax, mean_amp_morph10[0],
+                   behavior_df[behavior_df["Morph ratio"] == 1.0]['%Voice'].iloc[0])
+                  ]
+        results.extend(result)
+
+df_amp = pd.DataFrame(results, columns=['subj', 'morph', 'channel', 'tmin', 'tmax', 'amp', '%Voice'])
+df_amp.to_csv('/Users/hannahsmacbook/EEG_voice/summarized-behavior-EEG.csv')
+
+# Get averaged evokeds over subjects
 avrgd_evokeds= {"morph 0.0": mne.grand_average(evokeds00),
     "morph 0.4": mne.grand_average(evokeds04),
     "morph 0.6": mne.grand_average(evokeds06),
@@ -168,3 +225,6 @@ fig=mne.viz.plot_compare_evokeds([avrgd_evokeds["morph 0.0"],
                                   avrgd_evokeds["morph 1.0"]],
                              picks=picks,truncate_xaxis= -0.1, colors=["firebrick", "lightsalmon", "lightblue", "darkblue"],
                              show_sensors=True, legend="lower right")
+
+
+
