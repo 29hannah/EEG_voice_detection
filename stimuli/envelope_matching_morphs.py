@@ -181,6 +181,13 @@ for tp in tps:
             ax[1].title.set_text(" ")
 
 
+# Get as Binaural sound and plot waveform
+for file_name in env_file_names:
+    sound = slab.Sound.read(str(file_name))
+    sound = slab.Binaural(sound)
+    sound.left.waveform()
+    sound.right.waveform()
+
 
 """
 # Compare envelope and ERP

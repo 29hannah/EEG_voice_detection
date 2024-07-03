@@ -143,10 +143,10 @@ test= df_EEG_sum.copy()
 data_np=test.to_numpy()
 options = dict()  # initialize as an empty dictionary
 options['sigmoidName'] = 'norm'  # choose a cumulative Gauss as the sigmoid
-options['expType'] = 'YesNo'
+options['expType'] = 'equalAsymptote'
 result = ps.psignifit(data_np, options)
 PSE=result['Fit'][0]
-ps.psigniplot.plotPsych(result)
+ps.psigniplot.plotPsych(result, extrapolLength = 0.01)
 
 
 """

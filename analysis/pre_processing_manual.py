@@ -150,11 +150,8 @@ data_DIR = DIR /"analysis"/ "data" / "study"
 results_path= DIR/"analysis"/ "results" / "study" / "EEG"
 #results_path= DIR/"analysis"/ "results" / "pilot" / "EEG"
 
-# Get the subject ids
-ids = list(name for name in os.listdir(data_DIR)
-               if os.path.isdir(os.path.join(data_DIR, name)))
 
-subj= 'sub_13' #set to id/subject whose data you want to preprocess
+subj= 'sub_24' #set to id/subject whose data you want to preprocess
 
 
 # Define directories for subject
@@ -214,7 +211,7 @@ ransac.fit(epochs_clean)
 
 epochs_clean.average().plot(exclude=[])
 
-bads=["PO8", "PO10", "Oz"] #Add channel names to exclude here
+bads=[] #Add channel names to exclude here
 if len(bads) != 0:
     for bad in bads:
         if bad not in ransac.bad_chs_:
@@ -275,7 +272,7 @@ ica.plot_components()
 ica.plot_sources(inst=epochs, show=False, start=0,
                  stop=10, show_scrollbars=False)
 
-ica.exclude = [2] #List of integer components to exclude
+ica.exclude = [0,1,2] #List of integer components to exclude
 
 # Plot excluded components
 ica.plot_components(ica.exclude, show=False)
@@ -318,29 +315,8 @@ plt.savefig(
     fig_folder / pathlib.Path("clean_evoked.pdf"), dpi=800)
 plt.close()
 
-### STEP 7: Apply AutoReject ###
-epochs_clean = autoreject_epochs(
-            epochs_ica, n_interpolate=cfg["autoreject"]["n_interpolate"],
-            n_jobs=cfg["autoreject"]["n_jobs"],
-            cv=cfg["autoreject"]["cv"],
-            thresh_method=cfg["autoreject"]["thresh_method"])
-epochs_clean.apply_baseline((None, 0))
-
-
-# Plot the AutoReject results
-fig, ax = plt.subplots(2)
-epochs_clean.average().plot_image(
-    titles=f"SNR:{snr(epochs_clean):.2f}", show=False, axes=ax[0])
-
-epochs_clean.average().plot(show=False, axes=ax[1])
-plt.tight_layout()
-plt.savefig(
-    fig_folder / pathlib.Path("clean_evoked.pdf"), dpi=800)
-plt.close()
-
-
 epochs_clean.save(
-    epochs_folder / pathlib.Path(id + "-epo.fif"), overwrite=True)
+    epochs_folder / pathlib.Path(subj + "-epo.fif"), overwrite=True)
 
 ### STEP 8: Average epochs and write evokeds###
 evokeds = [epochs_clean[condition].average()

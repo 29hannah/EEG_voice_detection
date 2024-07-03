@@ -16,7 +16,7 @@ def abs_file_paths(directory):
                 yield pathlib.Path(join(dirpath, f))
 
 
-folder_path= '/Users/hannahsmacbook/PycharmProjects/EEG_voice_detection/stimuli/sound_files/final_sounds'
+folder_path= '/Users/hannahsmacbook/PycharmProjects/EEG_voice_detection/stimuli/sound_files/resampled_sounds'
 all_file_names = [f for f in abs_file_paths(folder_path)]
 all_file_names.sort()
 
@@ -57,14 +57,14 @@ for sound_file in all_file_names:
 max_ind=max(indcs)
 
 # Cut the sounds based on their first peak(everything before is removed) and save sounds with specified duration
-duration= 12000 #enter duration in samples here
+duration= round(30000 - (0.05*sound.samplerate) )#enter duration in samples here
 sound_analysis=dict()
 for sound_file in all_file_names:
     morph_ratio = float(str(sound_file)[-7:-4])
     sound = slab.Sound(sound_file)
     envelope = sound.envelope()
     indx= list(scipy.signal.find_peaks(envelope.data[:, 0], height=0.1)[0])[0]
-    sound_cut = sound.data[indx:indx+duration]
+    sound_cut = sound.data[indx-round(0.05*sound.samplerate):indx+duration]
     sig = slab.Sound(data=sound_cut, samplerate=48000)
     sig = sig.resample(48828)
     #print(sig.duration)
@@ -76,11 +76,13 @@ for sound_file in all_file_names:
         "Envelope Cut Sound": envelope_cut.data[:, 0]
     }
 
+
+
 all_file_names2 = [f for f in abs_file_paths("/Users/hannahsmacbook/PycharmProjects/EEG_voice_detection/stimuli/sound_files/peak_aligned")]
 
 sub_duration=[]
 for file_name in all_file_names2:
-    if "duration-0.59" in file_name.stem:
+    if "duration-0.62" in file_name.stem:
         sub_duration.append(file_name)
 
 sound_analysis=dict()

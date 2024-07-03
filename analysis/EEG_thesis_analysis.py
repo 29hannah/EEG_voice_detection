@@ -7,9 +7,6 @@ import pathlib
 import os
 import seaborn as sns
 
-# TODO: models
-# TODO localizer??
-# TODO component analysis 
 
 """This script contains code to analyze our data 
 It consists of three parts 
@@ -26,7 +23,7 @@ with open(DIR / "analysis" / "settings" / "preproc_config.json") as file:
 
 
 ### Analysis within participants ###
-subj= "sub_15" # Define which participant's data to analyse
+subj= "sub_18" # Define which participant's data to analyse
 
 
 # Define directories for subject
@@ -81,10 +78,14 @@ plt.close()
 
 
 # Summarize and plot the behavioral data
+### Analysis within participants ###
+subj= "sub_24" # Define which participant's data to analyse
+# Define directories for subject
+behavior_dir= DIR / "analysis" / "data" /"study"/  subj
+
 files = [file for file in listdir(behavior_dir) if file.endswith('.csv')]
 files = [k for k in files if 'experiment' in k]
 data = pd.read_csv(str(behavior_dir) + '/' + files[0])
-
 morphs= list(data['Morph played'].unique())
 results_dict=dict()
 i=0
