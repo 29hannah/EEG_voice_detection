@@ -39,15 +39,14 @@ hist(data$ampz) #amplitude seems to be more or less normally distributed
     ylab("X.Voicez"))
 
 
-# MIXED EFFECTS MODEL
-mixed.lmer <- lmer(X.Voicez ~ ampz + (1|subj), data = data)
+# MIXED EFFECTS MODEL 1
+mixed.lmer <- lmer(X.Voicez ~ ampz+ condition + (1|subj), data=data)
 summary(mixed.lmer)
-
 
 # Check the assumptions 
 plot(mixed.lmer)
 qqnorm(resid(mixed.lmer))
-qqline(resid(mixed.lmer)) # Residuals are not normally distributed!
+qqline(resid(mixed.lmer)) 
 
 # Plotting the model predictions
 # Extract the prediction data frame
@@ -55,26 +54,30 @@ pred.mm <- ggpredict(mixed.lmer, terms = c("ampz"))
 
 # Plot the predictions-Overall
 fig1<-(ggplot(pred.mm) + 
-    geom_line(aes(x = x, y = predicted)) +      
-    geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error), 
-                fill = "lightgrey", alpha = 0.5) +  # error band
-    geom_point(data = data,                      # adding the raw data (scaled values)
-               aes(x = ampz, y = X.Voicez, colour = subj)) + 
-    labs(x = "ampz", y = "X.Voicez", 
-         title = "") + 
-    theme_minimal()
+         geom_line(aes(x = x, y = predicted)) +      
+         geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error), 
+                     fill = "lightgrey", alpha = 0.5) +  # error band
+         geom_point(data = data,                      # adding the raw data (scaled values)
+                    aes(x = ampz, y = X.Voicez, colour = subj)) + 
+         labs(x = "ampz", y = "X.Voicez", 
+              title = "") + 
+         theme_minimal()
 )
 fig1
 
 # Results table
 tab_model(mixed.lmer)
 
+# BASELINE MODEL
+mixed.lmer2 <- lmer(X.Voicez ~  condition  + (1|subj), data=data)
+summary(mixed.lmer2)
+plot(mixed.lmer2)
+qqnorm(resid(mixed.lmer2))
+qqline(resid(mixed.lmer2)) # Residuals are not normally distributed!
+
+
 # Comparison to reduced model: Drop fixed effect for reduced model 
-full.lmer <- lmer( X.Voicez ~ ampz + (1 | subj), 
-                  data = data, REML = FALSE)
-reduced.lmer <- lmer(X.Voicez ~ 1 + (1 | subj), 
-                     data = data, REML = FALSE)
-anova(reduced.lmer, full.lmer) 
+anova(mixed.lmer, mixed.lmer2) 
 
 
 
