@@ -28,8 +28,11 @@ def fit_pf(data):
     options = dict()  # initialize as an empty dictionary
     options['sigmoidName'] = 'logistic'  # choose a cumulative Gauss as the sigmoid
     options['expType'] = 'equalAsymptote'
+    plt.figure()
     result = ps.psignifit(data_np, options)
     PSE = result['Fit'][0]
+
+    ps.psigniplot.plotPsych(result, plotThresh=False, extrapolLength=.01)
     return PSE
 
 def ignore_conds(d, *keys):
@@ -63,7 +66,6 @@ for subj in subjs:
     data = df_sub.copy()
     data = data[['Morph ratio', 'Voice responses', 'N']]
     # Save PSE per subject
-
     PSE=fit_pf(data)
     results_PSE.append((subj,PSE))
 
